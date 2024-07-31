@@ -1,0 +1,37 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'app_casinos/css/admin/admin.css' %}">
+{% endblock %}
+
+
+{% block field_sets %}
+<!--  <p>{{ adminform.fieldsets.0.0 }}</p>-->
+
+  <div class="submit-row">
+    <button type="button" class="show-all-button">
+      Show All
+    </button>
+    {% for fieldset in adminform %}
+      {% if forloop.counter0 < 2 %}
+        <button type="button" class="nav-button" data-target="{{ fieldset.name|slugify }}">
+          {{ fieldset.name }}
+        </button>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% for fieldset in adminform %}
+    <div id="{{ fieldset.name|slugify }}" class="form-fieldset">
+      {% include "admin/fieldset.html" %}
+    </div>
+  {% endfor %}
+
+<!--<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>-->
+<script src="{% static 'app_casinos/js/admin/moving_blocks_to_change_form.js' %}"></script>
+<script src="{% static 'app_casinos/js/admin/admin3.js' %}"></script>
+{% endblock %}
+
+

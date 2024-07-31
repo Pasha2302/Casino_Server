@@ -1,0 +1,10 @@
+__pycache__
+env
+.idea
+*.log
+check_create_db.txt
+tmpu2r3_px_
+*.zip
+gunicorn_pid.txt
+venv
+
