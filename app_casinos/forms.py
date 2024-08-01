@@ -203,6 +203,8 @@ class  PromotionPeriodForm(forms.ModelForm):
             raise forms.ValidationError("End date cannot be earlier than start date.")
 
 # ==================================================================================================================== #
+
+
 class NoClearableFileInput(forms.ClearableFileInput):
     clear_checkbox_label = ''  # Устанавливаем пустую строку, чтобы не отображать чекбокс "Clear"
 

@@ -93,12 +93,7 @@
                 let targetChildren = fieldset.children;
                 fieldset.style.display = 'block';
                 for (let child of targetChildren) {
-                    // Показать все елементы (кроме .field-theme)
-                    if (!child.classList.contains('field-theme')) {
-                        child.style.display = 'block';
-                    } else {
-                        child.style.display = 'none';
-                    }
+                    child.style.display = 'block';
                 };
             });
             // Показать все блоки formset (кроме #loyalty_program-group)

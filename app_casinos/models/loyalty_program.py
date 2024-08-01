@@ -1,7 +1,8 @@
-from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
 from django.db import models
-
+from django.db.models.signals import post_delete, pre_save
 from app_casinos.models.casino import Casino
+from app_casinos.signal_handlers import auto_delete_file_img_on_delete, auto_delete_file_img_on_change
 
 
 class CashbackPeriod(models.Model):
@@ -93,7 +94,26 @@ class LevelLoyalty(models.Model):
     def __str__(self):
         return self.program.__str__()
 
+
+class LoyaltyKeypoint(models.Model):
+    program = models.ForeignKey(
+        "LoyaltyProgram", on_delete=models.CASCADE, null=True, related_name='loyalty_keypoint'
+    )
+    image = models.ImageField(
+        upload_to='loyalty_keypoint_images/', verbose_name='Loyalty Keypoint Image', null=True, blank=True
+    )
+    text_1 = models.CharField(verbose_name="Description 1", max_length=255, null=True, blank=True)
+    text_2 = models.CharField(verbose_name="Description 2", max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.program.__str__()} / Loyalty Keypoint"
+
+
+post_delete.connect(auto_delete_file_img_on_delete, sender=LoyaltyKeypoint)
+pre_save.connect(auto_delete_file_img_on_change, sender=LoyaltyKeypoint)
+
 # ==================================================================================================================== #
+
 
 class LoyaltyProgram(models.Model):
     CHOICES_VIP_MANAGER = [('undefined', 'Undefined'), ('yes', 'Yes'), ('no', 'No')]

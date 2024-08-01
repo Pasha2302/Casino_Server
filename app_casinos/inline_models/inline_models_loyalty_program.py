@@ -1,10 +1,12 @@
 from django.contrib import admin
+# from django.db import models
 from django.urls import reverse
 from django.utils.html import format_html
 
+# from app_casinos.forms import NoClearableFileInput
 from app_casinos.models.loyalty_program import (
     PointAccumulation, Cashback, LevelUpBonus, LevelLoyalty, LoyaltyProgram,
-    Withdrawals, SpecialPrize, Gifts, LoyaltyBonus
+    Withdrawals, SpecialPrize, Gifts, LoyaltyBonus, LoyaltyKeypoint
 )
 
 
@@ -54,6 +56,29 @@ class CashbackInline(admin.TabularInline):
 class PointAccumulationInline(admin.TabularInline):
     model = PointAccumulation
     fields = ('point', 'value', 'next_lvl', 'level_value')
+
+
+class LoyaltyKeypointInline(admin.TabularInline):
+    model = LoyaltyKeypoint
+    extra = 1  # Количество дополнительных форм для ввода
+    max_num = 10  # Запрет добавления новых записей
+    can_delete = True  # Разрешаем удаление записей
+    # formfield_overrides = {
+    #     models.ImageField: {'widget': NoClearableFileInput},
+    # }
+    readonly_fields = ('display_image',)
+    fieldsets = (
+        (None, {
+            'fields': ('display_image', 'image', 'text_1', 'text_2', )
+        }),
+    )
+
+    def display_image(self, obj):
+        if obj.image:
+            return format_html(
+                '<img src="{}" style="max-height: 100px; max-width: 140px;" />', obj.image.url)
+        else:
+            return "Image Missing"
 
 
 class LoyaltyProgramInline(admin.TabularInline):

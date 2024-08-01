@@ -403,6 +403,7 @@ class DayOfWeek(models.Model):
 # ******************************************************************************************************************** #
 # ******************************************************************************************************************** #
 
+
 class Bonus(models.Model):
     casino = models.ForeignKey(
         Casino, on_delete=models.CASCADE, null=True,
@@ -443,6 +444,9 @@ class Bonus(models.Model):
         help_text=text_bonus_calculations_amount_bonus_only
     )
 
+    special_promo_category = models.BooleanField(default=False, verbose_name="Special Promo Category", )
+    special_side_bar = models.BooleanField(default=False, verbose_name="Special Side Bar Promo", )
+
     objects: QuerySet = models.Manager()
 
     class Meta:
@@ -472,7 +476,6 @@ class Bonus(models.Model):
                 print(f"\nSlug: {self.slug}")
 
         super().save(*args, **kwargs)
-
 
     def __str__(self):
         return f"{self.name} / {self.casino.name}"

@@ -1,8 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import QuerySet, Case, When, Value, IntegerField
+from django.db.models.signals import post_delete, pre_save
 from django.utils.text import slugify
 from app_casinos.description_model_fields import *
+from app_casinos.signal_handlers import auto_delete_file_img_on_delete, auto_delete_file_img_on_change
 
 CHOICES_SOURCE = [
     ('undefined', 'Undefined'),
@@ -12,14 +14,20 @@ CHOICES_SOURCE = [
     ('common_sense', 'Common Sense'),
 ]
 
+
 def save_slug(self, _super, additionally=None, *args, **kwargs):
     if additionally is None: additionally = ''
     if not self.slug: self.slug = slugify(f"{self.name} {additionally}".strip())
     _super.save(*args, **kwargs)
 
+# ==================================================================================================================== #
+
 
 class LicensingAuthority(models.Model):
     slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
+    image = models.ImageField(
+        upload_to='licensing_authority_images/', verbose_name='Licensing Authority Image', null=True, blank=True
+    )
     name = models.CharField(max_length=255, verbose_name="Name of authority")
     validator_url = models.URLField(verbose_name="Validator Url", blank=True, null=True)
 
@@ -33,6 +41,11 @@ class LicensingAuthority(models.Model):
 
     def __str__(self):
         return self.name
+
+
+post_delete.connect(auto_delete_file_img_on_delete, sender=LicensingAuthority)
+pre_save.connect(auto_delete_file_img_on_change, sender=LicensingAuthority)
+# ==================================================================================================================== #
 
 
 class WithdrawalLimit(models.Model):
@@ -283,6 +296,10 @@ class Affiliate(models.Model):
 
 class CasinoTheme(models.Model):
     name = models.CharField(max_length=255, verbose_name="Description",)
+
+    class Meta:
+        ordering = ['id']
+
     def __str__(self):
         return self.name
 
@@ -300,6 +317,26 @@ class SocialBonus(models.Model):
         verbose_name_plural = "Social Bonus"
 
 
+class CasinoCategory(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Casino Category Name")
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return self.name
+
+
+class PayoutSpeed(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Payout Speed Value",)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return self.name
+
+
 class Casino(models.Model):
     CHOICES_LIVE_CHAT = [
         ("", ""),
@@ -315,9 +352,16 @@ class Casino(models.Model):
     affiliate = models.OneToOneField(
         "Affiliate", null=True, blank=True, on_delete=models.SET_NULL, related_name='casino')
 
+    payout_speed = models.ForeignKey(
+        "PayoutSpeed", on_delete=models.SET_NULL, verbose_name='Payout Speed',
+        related_name='casino', null=True, blank=True
+    )
+    review = models.TextField(blank=True, verbose_name='Review')
+
     slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
     name = models.CharField(max_length=255, verbose_name="Casino Name", help_text=text_casino_name)
     casino_rank = models.DecimalField(max_digits=3, decimal_places=1, verbose_name='Casino Rank', null=True)
+    casino_likes = models.PositiveIntegerField(default=0, verbose_name='Casino Likes')
 
     theme = models.ForeignKey(
         "CasinoTheme", verbose_name="Casino Theme",
@@ -359,6 +403,8 @@ class Casino(models.Model):
     crypto_currencies = models.ManyToManyField("CryptoCurrency", related_name='casino', null=True, blank=True)
     payment_methods = models.ManyToManyField("PaymentMethod", related_name='casino')
 
+    casino_category = models.ManyToManyField("CasinoCategory", related_name='casino', null=True, blank=True)
+
     wager_limit = models.BooleanField(default=False, help_text=text_casino_responsible_gambling_wager_limit)
     loss_limit = models.BooleanField(default=False, help_text=text_casino_responsible_gambling_loss_limit)
     session_limit = models.BooleanField(default=False, help_text=text_casino_responsible_gambling_session_limit)
@@ -387,7 +433,7 @@ class Casino(models.Model):
         verbose_name_plural = "Casinos"
 
     def clean(self):
-        if self.casino_rank and  self.casino_rank > 10:
+        if self.casino_rank and self.casino_rank > 10.00:
             raise ValidationError('The value [Casino Rank] cannot be greater than 10')
 
     def save(self, *args, **kwargs):

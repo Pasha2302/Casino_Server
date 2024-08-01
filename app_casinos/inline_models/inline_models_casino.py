@@ -34,6 +34,7 @@ class AccountDataInline(admin.TabularInline):
 
 # ================================================================================================================== #
 
+
 class CasinoImageInline(admin.TabularInline):
     model = CasinoImage
     extra = 1
@@ -64,9 +65,8 @@ class LicensesInline(admin.TabularInline):
 
 class BonusInline(admin.TabularInline):
     model = Bonus
-    fields = ('name', 'link', 'edit_link')  # Добавляем поле 'edit_link'
+    fields = ('name', 'link', 'special_promo_category', 'special_side_bar', 'edit_link')  # Добавляем поле 'edit_link'
     readonly_fields = ('edit_link',)  # Делаем поле только для чтения
-
     extra = 1
 
     def edit_link(self, obj):

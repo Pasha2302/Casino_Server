@@ -40,7 +40,7 @@
         $('.field-sisters_casinos').first().after($('#casino_license-set').first());
         $('#casino_license-set').first().after($('#games_info-set').first());
 
-        $('.form-row.field-theme').first().hide();
+        // $('.form-row.field-theme').first().hide();
 
         $('.form-row.field-link_bonuses').first().after($('#bonuses-group').first());
         $('#bonuses-group').first().after($('#social_bonuses-group').first());

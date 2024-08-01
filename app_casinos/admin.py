@@ -26,7 +26,7 @@ from app_casinos.inline_models.inline_models_casino import (
 )
 from app_casinos.inline_models.inline_models_loyalty_program import (
     PointAccumulationInline, CashbackInline, LevelUpBonusInline, LevelLoyaltyInline, LoyaltyProgramInline,
-    WithdrawalsInline, SpecialPrizeInline, GiftsInline, LoyaltyBonusInline
+    WithdrawalsInline, SpecialPrizeInline, GiftsInline, LoyaltyBonusInline, LoyaltyKeypointInline
 )
 
 from app_casinos.models.bonus import (
@@ -39,7 +39,7 @@ from app_casinos.models.casino import (
     MinDep, Country, Language, AccountData, GameType,
     Provider, Game, ClassicCurrency, CryptoCurrency, LicensingAuthority,
     CasinoImage, BaseCurrency, AffiliatesProgram, PaymentMethod, Affiliate,
-    CasinoTheme
+    CasinoTheme, CasinoCategory, PayoutSpeed
 )
 from app_casinos.models.loyalty_program import LoyaltyProgram, LevelLoyalty, CashbackPeriod, CashbackType
 from django.utils.safestring import mark_safe
@@ -95,7 +95,7 @@ class LoyaltyProgramAdmin(admin.ModelAdmin):
     autocomplete_fields = ('casino',)
 
     inlines = (
-        LevelLoyaltyInline,
+        LoyaltyKeypointInline, LevelLoyaltyInline,
     )
     fieldsets = (
         ('Loyalty Program', {
@@ -353,11 +353,16 @@ class WithdrawalLimitAdmin(admin.ModelAdmin):
 
 @admin.register(LicensingAuthority)
 class LicensingAuthorityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'validator_url')
-    list_display_links = ('id', 'name')
+    list_display = ('id', 'display_image', 'name', 'validator_url')
+    list_display_links = ('display_image', 'id', 'name')
 
-    # inlines = (LicensesInline,)
-    exclude = ('slug',)
+    readonly_fields = ('display_image',)
+    fields = (('display_image', 'image'), 'name', 'validator_url', )
+
+    def display_image(self, obj):
+        # Возвращает HTML-код для отображения изображений в списке объектов
+        return format_html('<img src="{}" width="50" height="50" />',
+                           obj.image.url) if obj.image else None
 
 
 @admin.register(Affiliate)
@@ -367,6 +372,16 @@ class AffiliateAdmin(admin.ModelAdmin):
 
 @admin.register(CasinoTheme)
 class CasinoThemeAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+
+
+@admin.register(CasinoCategory)
+class CasinoCategoryAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(PayoutSpeed)
+class PayoutSpeedAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
@@ -380,8 +395,7 @@ class CasinoAdmin(admin.ModelAdmin):
     # Поле только для чтения
     readonly_fields = (
         'slug', 'owner', 'established',
-        'games', 'game_providers',
-        'payment_methods', 'sisters_casinos',
+        'games', 'game_providers', 'sisters_casinos',  # 'payment_methods'
     )
 
     list_display = ('name', 'url', 'shortened_notes', 'is_pars_data',)  # 'display_images',
@@ -396,7 +410,7 @@ class CasinoAdmin(admin.ModelAdmin):
         js = ('app_casinos/js/admin/casino_parser.js',)
         css = {'all': ('app_casinos/css/admin/casino_parser.css',)}
 
-    autocomplete_fields = ('affiliate', 'theme')
+    autocomplete_fields = ('affiliate', 'theme', 'payout_speed')
     fieldsets = (
 
         ('AFFILIATES', {
@@ -406,7 +420,8 @@ class CasinoAdmin(admin.ModelAdmin):
         ('BASIC INFORMATION', {
             'fields': (
                 'is_pars_data',
-                'name', 'casino_rank', 'theme', 'link_loyalty', 'url', 'link_casino_guru', 'link_tc',
+                'name', 'casino_category', 'review', 'payout_speed', 'casino_rank', 'casino_likes', 'theme',
+                'link_loyalty', 'url', 'link_casino_guru', 'link_tc',
                 'link_bonus_tc', 'link_bonuses',
                 'sportsbook', 'tournaments',
                 'owner', 'established', 'sisters_casinos',
@@ -461,8 +476,8 @@ class CasinoAdmin(admin.ModelAdmin):
 
     # list_filter = ('',)
     filter_horizontal = (
-        "game_types",  #"game_providers",# "games",
-        "classic_currency", "crypto_currencies",  #"payment_methods",
+        "game_types", 'casino_category',  # "game_providers",# "games",
+        "classic_currency", "crypto_currencies",  "payment_methods",
         "licenses", "blocked_countries", "language_website", "language_live_chat"
     )
 
