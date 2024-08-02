@@ -24,6 +24,7 @@ class GameInline(admin.TabularInline):
     # can_delete = False  # Запрет удаления записей
     raw_id_fields = ['game']
 
+
 class AccountDataInline(admin.TabularInline):
     form = AccountDataForm
     model = AccountData
@@ -52,7 +53,7 @@ class CasinoImageInline(admin.TabularInline):
     def display_image(self, obj):
         if obj.image:
             return format_html(
-                '<img src="{}" style="max-height: 140px; max-width: 180px;" />', obj.image.url)
+                '<img src="{}" style="max-height: 90px; max-width: 60px;" />', obj.image.url)
         else:
             return None
 

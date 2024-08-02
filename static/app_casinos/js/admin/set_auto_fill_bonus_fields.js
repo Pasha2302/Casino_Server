@@ -89,8 +89,9 @@
                 console.error("\nПроизошла ошибка:", error);
                 console.error("Input Data:", _data);
             }
+            
+            if ( _data.symbol.id ) symbolElm.select2('trigger', 'select', { data: _data.symbol });
 
-            symbolElm.select2('trigger', 'select', { data: _data.symbol });
             selectedSourceElm.value = _data.source;
             if (_data.unlimited !== null) {
                 let unlimitedElm = parentRow.querySelector(`[id^="${prefixIdValue}"][id$="-unlimited"]`);

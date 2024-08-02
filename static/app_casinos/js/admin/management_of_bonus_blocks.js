@@ -333,9 +333,9 @@ const createPagination = () => {
 }
 
 
-// =============================================================================== //
+// ================================================================================ //
 
-$(document).ready(function () {
+$(window).on('load', function() {
     const setIntervalId = setInterval(() => {
         const checkElement = document.querySelector('#slots_wagering-group');
         if (checkElement) {

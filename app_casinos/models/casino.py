@@ -106,6 +106,7 @@ class MinWagering(models.Model):
 
 # ------------------------------------------------------------------------------------------------------------------ #
 
+
 class MinDep(models.Model):
     min_value = models.FloatField(null=True, blank=True)
     casino = models.ForeignKey(
@@ -139,6 +140,7 @@ class MinDep(models.Model):
 
 # ------------------------------------------------------------------------------------------------------------------ #
 
+
 class Country(models.Model):
     slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
     name = models.CharField(max_length=255, verbose_name="Country Name")
@@ -160,14 +162,20 @@ class Country(models.Model):
 class Language(models.Model):
     slug = models.SlugField(unique=True, db_index=True, max_length=255)
     name = models.CharField(max_length=255, verbose_name="Language")
+    image = models.ImageField(upload_to='language_images/', verbose_name='Language Image', null=True, blank=True)
 
     def __str__(self):
         return self.name
 
 
+post_delete.connect(auto_delete_file_img_on_delete, sender=Language)
+pre_save.connect(auto_delete_file_img_on_change, sender=Language)
+
+
 class GameType(models.Model):
     slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
     name = models.CharField(max_length=255, verbose_name="Game Type")
+    image = models.ImageField(upload_to='game_type_images/', verbose_name='Game Type Image', null=True, blank=True)
     objects: QuerySet = models.Manager()
 
     class Meta:
@@ -190,11 +198,20 @@ class GameType(models.Model):
         save_slug(self, super(), additionally=None, *args, **kwargs)
 
 
+post_delete.connect(auto_delete_file_img_on_delete, sender=GameType)
+pre_save.connect(auto_delete_file_img_on_change, sender=GameType)
+
+
 class Provider(models.Model):
     name = models.CharField(max_length=255, verbose_name="Provider Name")
+    image = models.ImageField(upload_to='provider_images/', verbose_name='Provider Image', null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+
+post_delete.connect(auto_delete_file_img_on_delete, sender=Provider)
+pre_save.connect(auto_delete_file_img_on_change, sender=Provider)
 
 
 class Game(models.Model):
@@ -227,6 +244,7 @@ class BaseCurrency(models.Model):
         additional_name = ''
         if self.name2: additional_name = f' | {self.name2}'
         return f"{self.symbol} | {self.name}{additional_name}"
+
     class Meta:
         ordering = ["id"]
         verbose_name = "Base Currency"
@@ -257,6 +275,7 @@ class AccountData(models.Model):
 
     def __str__(self):
         return self.login
+
     class Meta:
         ordering = ["login"]
         verbose_name = "Account Data"
@@ -357,11 +376,14 @@ class Casino(models.Model):
         related_name='casino', null=True, blank=True
     )
     review = models.TextField(blank=True, verbose_name='Review')
+    what_we_dont_like = models.TextField(blank=True, verbose_name="What we don't like")
+    what_we_like = models.TextField(blank=True, verbose_name="What we like")
+    image = models.ImageField(upload_to='base_casino_images/', verbose_name='Path Image', null=True, blank=True)
 
     slug = models.SlugField(unique=True, db_index=True, blank=True, max_length=255)
     name = models.CharField(max_length=255, verbose_name="Casino Name", help_text=text_casino_name)
     casino_rank = models.DecimalField(max_digits=3, decimal_places=1, verbose_name='Casino Rank', null=True)
-    casino_likes = models.PositiveIntegerField(default=0, verbose_name='Casino Likes')
+    likes = models.PositiveIntegerField(default=0, verbose_name='Casino Likes')
 
     theme = models.ForeignKey(
         "CasinoTheme", verbose_name="Casino Theme",
@@ -441,3 +463,7 @@ class Casino(models.Model):
 
     def __str__(self):
         return self.name
+
+
+post_delete.connect(auto_delete_file_img_on_delete, sender=Casino)
+pre_save.connect(auto_delete_file_img_on_change, sender=Casino)

@@ -40,7 +40,7 @@
         $('.field-sisters_casinos').first().after($('#casino_license-set').first());
         $('#casino_license-set').first().after($('#games_info-set').first());
 
-        $('.form-row.field-theme').first().hide();
+        // $('.form-row.field-theme').first().hide();
 
         $('.form-row.field-link_bonuses').first().after($('#bonuses-group').first());
         $('#bonuses-group').first().after($('#social_bonuses-group').first());
@@ -63,19 +63,34 @@
             // Находим родительский блок для текущего элемента
             var parentFieldset = readonlyElement.closest('.form-row');
             // Проверяем, найден ли родительский блок
-            if (parentFieldset) {
+            if ( parentFieldset && !parentFieldset.classList.contains('field-base_display_image') ) {
                 // Если найден, то устанавливаем стили для него
                 parentFieldset.style.backgroundColor = '#ffffcc';
             }
         });
     }
 
+    var createTitlePositiveNegative = () => {
+        var h2elm = document.createElement('h2');
+        var targetBlock = document.querySelector('.form-row.field-what_we_dont_like.field-what_we_like');
+        targetBlock.classList.add('module');
+        document.querySelector('label[for="id_what_we_dont_like"]').classList.add('custom-label');
+        
+        h2elm.innerText = "Positive and Negative Sides";
+        h2elm.setAttribute('class', 'positives_negatives');
+        h2elm.style.marginBottom = '20px';
+        
+        targetBlock.insertBefore(h2elm, targetBlock.firstChild);
+        
+      }
 
     function main() {
         setIdBlocksFieldSet();
         movingBlocks();
         add_block_descriptions();
         setBlockStyleToReadOnly();
+
+        createTitlePositiveNegative();
     }
 
 

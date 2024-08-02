@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block title %}
+    {{ title }} | My Admin
+{% endblock %}
+{% block extrahead %}
+    <link rel="icon" href="{% static 'app_casinos/img/favicon.ico' %}" type="image/x-icon">
+    <link rel="shortcut icon" href="{% static 'app_casinos/img/favicon.ico' %}" type="image/x-icon">
+    {{ block.super }}
+{% endblock %}

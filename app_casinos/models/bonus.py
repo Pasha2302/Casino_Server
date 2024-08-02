@@ -282,8 +282,11 @@ class WageringContribution(models.Model):
     #     if self.selected_source == 'undefined':
     #         raise ValidationError('Be sure to specify the data source (Selected source)')
 
+
 # -------------------------------------------------------------------------------------------------------------------- #
 # ======================================= RESTRICTIONS =============================================================== #
+
+
 class BonusRestrictionGame(models.Model):
     bonus = models.OneToOneField(
         "Bonus", on_delete=models.CASCADE, null=True, related_name='restriction_game', to_field='slug')
@@ -377,7 +380,7 @@ class BonusSubtype(models.Model):
 
 
 class Day(models.Model):
-    day =  models.CharField(verbose_name="Day",max_length=10, default=None, unique=True)
+    day = models.CharField(verbose_name="Day",max_length=10, default=None, unique=True)
 
     def __str__(self):
         return self.day
@@ -400,6 +403,21 @@ class DayOfWeek(models.Model):
     # def clean(self):
     #     if self.selected_source == 'undefined':
     #         raise ValidationError('Be sure to specify the data source (Selected source)')
+
+
+class Label(models.Model):
+    name = models.CharField(verbose_name="Label Name", max_length=255, default=None)
+
+    def __str__(self):
+        return self.name
+
+
+class BonusCategory(models.Model):
+    name = models.CharField(verbose_name="Category Name", max_length=255, default=None)
+
+    def __str__(self):
+        return self.name
+
 # ******************************************************************************************************************** #
 # ******************************************************************************************************************** #
 
@@ -414,6 +432,13 @@ class Bonus(models.Model):
     name = models.CharField(verbose_name="Bonus Name",max_length=255, default=None, help_text=text_bonus_name)
     bonus_rank = models.DecimalField(max_digits=3, decimal_places=1, verbose_name='Bonus Rank', null=True)
     link = models.URLField(verbose_name="Bonus URL", null=True, blank=True, help_text=text_bonus_url)
+    lables = models.ManyToManyField("Label", related_name='bonus', blank=True, verbose_name="Labels", )
+    category = models.ManyToManyField(
+        "BonusCategory", related_name='bonus', blank=True, verbose_name="Bonus Category",
+    )
+    description = models.TextField(verbose_name="Bonus Description", null=True, blank=True, )
+    file = models.FileField(upload_to='bonuses/files/', verbose_name="File Path", blank=True, null=True)
+    likes = models.PositiveIntegerField(default=0, verbose_name='Bonus Likes')
 
     game_providers = models.ManyToManyField(Provider, verbose_name="Providers", related_name='bonus', blank=True)
     bonus_type = models.ForeignKey(

@@ -10,6 +10,8 @@ function newFilter() {
     const checkIdsCurrency = ['id_licenses_from', 'id_licenses_to'];
     const SelectBox = window.SelectBox;
 
+    if (!SelectBox) return;
+
     SelectBox.filter = function (id, text) {
         if (id === 'id_restriction_game-0-game_from') return;
         console.log("\nSelect Filter [id]:", id)
@@ -191,6 +193,7 @@ function stopObservingAllBlocks() {
 
 function addButtonToCopyData() {
     let blocksChosen = document.querySelectorAll('.selector-chosen');
+    if (blocksChosen.length === 0) return;
 
     for (let blockChosen of blocksChosen) {
         let blockId = blockChosen.attributes.id.nodeValue;
@@ -274,7 +277,8 @@ $(document).ready(function () {
     const setIntervalId = setInterval(() => {
         const checkElement = document.querySelector('#bonuses-group');
         const checkElement2 = document.querySelector('#slots_wagering-group');
-        if (checkElement || checkElement2) {
+        const checkElement3 = document.querySelector('#level_loyalty-group');
+        if (checkElement || checkElement2 || checkElement3) {
             clearInterval(setIntervalId);
 
             newFilter();
@@ -283,7 +287,6 @@ $(document).ready(function () {
             setClass();
             func1();
             formatNumbers();
-            creatButtonStartParser();
         }
     }, 300)
 

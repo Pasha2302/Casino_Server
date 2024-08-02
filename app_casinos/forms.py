@@ -8,7 +8,6 @@ from django.forms.models import ModelMultipleChoiceField
 from django.core.exceptions import ValidationError
 
 
-
 class CustomFilteredSelectMultipleSlots(FilteredSelectMultiple):
     def __init__(self, verbose_name, is_stacked, attrs=None, choices=()):
         super().__init__(verbose_name, is_stacked, attrs, choices)
@@ -87,7 +86,6 @@ class SlotsWageringContributionInlineForm(forms.ModelForm):
         return game
 
 
-
 # =================================================================================================================== #
 # =================================================================================================================== #
 
@@ -137,6 +135,7 @@ class CustomModelMultipleChoiceField(ModelMultipleChoiceField):
                     params={"value": val},
                 )
         return qs
+
 
 class BonusRestrictionGameInlineForm(forms.ModelForm):
     game = CustomModelMultipleChoiceField(
@@ -217,7 +216,7 @@ class RichTextEditorWidget(forms.Textarea):
         output_render = super().render(name, value, attrs, renderer)
         print(f"\n\nRender Text Area: {output_render}\nType output_render: {type(output_render)}\n")
         return mark_safe(
-            f'<div style="border: 1px solid #ccc; padding: 5px; background-color: #eaeae6;">{output_render}</div>'
+            f'<div class="flex-container">{output_render}</div>'
         )
 
 

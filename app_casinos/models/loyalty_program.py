@@ -120,8 +120,10 @@ class LoyaltyProgram(models.Model):
 
     casino = models.OneToOneField(
         Casino, on_delete=models.CASCADE, related_name='loyalty_program', null=True, default=None)
+    likes = models.PositiveIntegerField(default=0, verbose_name='Loyalty Likes')
     link = models.URLField(verbose_name="Loyalty Url", null=True, blank=True)
     loyalty_understandable = models.TextField(verbose_name="Is this loyalty easy to understand", null=True, blank=True)
+    description = models.TextField(verbose_name="Description", null=True, blank=True)
     vip_manager = models.CharField(max_length=10, choices=CHOICES_VIP_MANAGER, default='')
     loyalty_rank = models.DecimalField(max_digits=3, decimal_places=1, verbose_name='Loyalty Rank', null=True)
 

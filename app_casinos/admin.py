@@ -1,6 +1,6 @@
 # import re
 from django.contrib import admin
-from django.db import models
+# from django.db import models
 # from django.http import HttpResponseRedirect
 # from django.urls import reverse
 from django.utils.html import format_html
@@ -32,7 +32,7 @@ from app_casinos.inline_models.inline_models_loyalty_program import (
 from app_casinos.models.bonus import (
     Bonus, BonusType, WageringContributionValue,
     WageringContribution, BonusSlot, BonusRestrictionGame, BonusSubtype, Day, BonusMinDep, DataAutoFillBonus,
-    SlotsWageringContribution
+    SlotsWageringContribution, Label, BonusCategory
 )
 from app_casinos.models.casino import (
     Casino, WithdrawalLimit, SisterCasino,
@@ -99,7 +99,7 @@ class LoyaltyProgramAdmin(admin.ModelAdmin):
     )
     fieldsets = (
         ('Loyalty Program', {
-            'fields': ('casino', 'link', 'loyalty_understandable', 'vip_manager', 'loyalty_rank')
+            'fields': ('likes', 'casino', 'link', 'loyalty_understandable', 'description', 'vip_manager', 'loyalty_rank')
         }),
     )
 
@@ -161,6 +161,20 @@ class BonusSubtypeAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+@admin.register(Label)
+class LabelAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name',)
+    list_display_links = ('name',)
+    search_fields = ('name',)
+
+
+@admin.register(BonusCategory)
+class BonusCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name',)
+    list_display_links = ('name',)
+    search_fields = ('name',)
+
+
 @admin.register(Day)
 class DayAdmin(admin.ModelAdmin):
     fields = ("day",)
@@ -184,7 +198,7 @@ class BonusAdmin(admin.ModelAdmin):
     search_fields = ('casino__name', 'bonus_type__name')
     autocomplete_fields = ('casino', 'bonus_type',)
     # readonly_fields = ('calculation_bonus_deposit', 'calculation_bonus_only')
-    readonly_fields = ('get_url_casino', 'get_url_bonus_tc')
+    readonly_fields = ('display_file', 'get_url_casino', 'get_url_bonus_tc')
 
     inlines = (
         BonusAmountInline, BonusValueInline, BonusMinDepInline, BonusExpirationInline,
@@ -203,10 +217,11 @@ class BonusAdmin(admin.ModelAdmin):
             # который будет отображаться в верхней части каждого набора полей под заголовком набора полей:
             # "description": "<p>Какой-то текст!</p>",
             # [classes] Список или кортеж, содержащий дополнительные классы CSS для применения к набору полей:
-            "classes": ("extrapretty",),  # "wide", "collapse", "extrapretty"
+            # "classes": ("extrapretty",),  # "wide", "collapse", "extrapretty"
             'fields': (
-                'casino', 'get_url_casino', 'get_url_bonus_tc',
-                'link', 'bonus_type', 'bonus_subtype', 'name', 'bonus_rank',
+                'casino', 'get_url_casino', 'name', 'likes', 'get_url_bonus_tc',
+                'link', 'category', 'bonus_type', 'bonus_subtype', 'lables',
+                'bonus_rank', ('display_file', 'file'), 'description',
             )
         }),
 
@@ -221,11 +236,25 @@ class BonusAdmin(admin.ModelAdmin):
         }),
 
     )
-    filter_horizontal = ("bonus_subtype", "game_providers",)
+    filter_horizontal = ('category', "bonus_subtype", 'lables', "game_providers",)
     # Это обеспечивает быстрый и грязный способ переопределения некоторых опций Field для использования в админке:
-    formfield_overrides = {
-        models.TextField: {"widget": RichTextEditorWidget},
-    }
+    # formfield_overrides = {
+    #     models.TextField: {"widget": RichTextEditorWidget},
+    # }
+
+    def display_file(self, obj):
+        if obj.file:
+            file_url = obj.file.url
+            file_name = obj.file.name
+            if file_name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+                return format_html('<img src="{}" style="max-height: 100px; max-width: 140px;" />', file_url)
+            elif file_name.lower().endswith('.html'):
+                return format_html('<a href="{}" target="_blank">HTML5 File</a>', file_url)
+            else:
+                return format_html('<a href="{}" target="_blank">Download File</a>', file_url)
+        return "No File"
+
+    display_file.short_description = 'File'
 
     def get_url_bonus_tc(self, obj: Bonus):
         link_bonus_tc = obj.casino.link_bonus_tc
@@ -319,13 +348,32 @@ class CountryAdmin(admin.ModelAdmin):
 
 @admin.register(GameType)
 class GameTypeAdmin(admin.ModelAdmin):
-    readonly_fields = ('slug',)
-    list_display = ('id', 'name',)
+    readonly_fields = ('slug', 'display_image', )
+    list_display = ('display_image', 'name',)
+    list_display_links = ('display_image', 'name',)
+    search_fields = ('name',)
+
+    fields = (('display_image', 'image'), 'name',)
+
+    def display_image(self, obj):
+        # Возвращает HTML-код для отображения изображений в списке объектов
+        return format_html('<img src="{}" width="50" height="50" />',
+                           obj.image.url) if obj.image else None
 
 
 @admin.register(Provider)
 class ProviderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name',)
+    list_display = ('display_image', 'name', )
+    list_display_links = ('display_image', 'name',)
+    search_fields = ('name',)
+
+    readonly_fields = ('display_image',)
+    fields = (('display_image', 'image'), 'name', )
+
+    def display_image(self, obj):
+        # Возвращает HTML-код для отображения изображений в списке объектов
+        return format_html('<img src="{}" width="50" height="50" />',
+                           obj.image.url) if obj.image else None
 
 
 @admin.register(Game)
@@ -337,9 +385,17 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(Language)
 class LanguageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug')
-    list_display_links = ('name',)
+    list_display = ('display_image', 'name', 'slug')
+    list_display_links = ('display_image', 'name',)
     search_fields = ('name',)
+
+    readonly_fields = ('display_image',)
+    fields = (('display_image', 'image'), 'slug', 'name',)
+
+    def display_image(self, obj):
+        # Возвращает HTML-код для отображения изображений в списке объектов
+        return format_html('<img src="{}" width="50" height="50" />',
+                           obj.image.url) if obj.image else None
 
 
 # ----------------------------------------------------------------------
@@ -395,11 +451,11 @@ class CasinoAdmin(admin.ModelAdmin):
     # Поле только для чтения
     readonly_fields = (
         'slug', 'owner', 'established',
-        'games', 'game_providers', 'sisters_casinos',  # 'payment_methods'
+        'games', 'game_providers', 'sisters_casinos', 'base_display_image'  # 'payment_methods'
     )
 
-    list_display = ('name', 'url', 'shortened_notes', 'is_pars_data',)  # 'display_images',
-    list_display_links = ('name', 'url',)  # 'display_images',
+    list_display = ('name', 'url', 'shortened_notes', 'is_pars_data',)
+    list_display_links = ('name', 'url',)
 
     inlines = (
         LoyaltyProgramInline, CasinoImageInline, BonusInline, WithdrawalLimitInline,
@@ -420,10 +476,14 @@ class CasinoAdmin(admin.ModelAdmin):
         ('BASIC INFORMATION', {
             'fields': (
                 'is_pars_data',
-                'name', 'casino_category', 'review', 'payout_speed', 'casino_rank', 'casino_likes', 'theme',
+                'name', 'casino_category', 'review',
+                ('what_we_dont_like', 'what_we_like'),
+
+                'payout_speed', 'casino_rank', 'likes', 'theme',
+
                 'link_loyalty', 'url', 'link_casino_guru', 'link_tc',
                 'link_bonus_tc', 'link_bonuses',
-                'sportsbook', 'tournaments',
+                'sportsbook', 'tournaments', ('base_display_image', 'image'),
                 'owner', 'established', 'sisters_casinos',
             ),
         }),
@@ -483,10 +543,10 @@ class CasinoAdmin(admin.ModelAdmin):
 
     search_fields = ('name',)
 
-    def display_images(self, obj):
+    def base_display_image(self, obj):
         # Возвращает HTML-код для отображения изображений в списке объектов
-        return format_html('<img src="{}" width="50" height="50" />',
-                           obj.images.first().image.url) if obj.images.exists() else None
+        return format_html('<img src="{}" width="100" height="80" />',
+                           obj.image.url) if obj.image else None
 
     def shortened_notes(self, obj):
         max_length = 255
@@ -499,3 +559,4 @@ class CasinoAdmin(admin.ModelAdmin):
             return ''
 
     shortened_notes.short_description = 'Special Notes'
+    base_display_image.short_description = 'Image'
